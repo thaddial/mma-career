@@ -1,0 +1,934 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+*{box-sizing:border-box;margin:0 auto;padding:0}
+body{font-family:var(--font-sans,system-ui);background:transparent;color:var(--text-primary);font-size:15px}
+.app{padding:1rem 0;max-width:680px}
+.screen{display:none}.screen.active{display:block}
+h1{font-size:22px;font-weight:500}.subtitle{font-size:14px;color:var(--text-secondary);margin-top:4px}
+h2{font-size:18px;font-weight:500}h3{font-size:15px;font-weight:500}
+.card{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem}
+.btn{display:inline-flex;align-items:flex-start;gap:6px;padding:8px 16px;border:0.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-primary);font-size:14px;font-weight:500;cursor:pointer;transition:background 0.12s;font-family:inherit}
+.btn:hover{background:var(--surface-1)}.btn:active{transform:scale(0.98)}
+.btn-primary{background:var(--text-primary);color:var(--surface-2);border-color:var(--text-primary)}.btn-primary:hover{opacity:.85;background:var(--text-primary)}
+.btn-danger{border-color:#A32D2D;color:#A32D2D}.btn-danger:hover{background:#FCEBEB}
+.btn-gold{border-color:#BA7517;color:#BA7517;background:linear-gradient(135deg,#FFF8E7,#FAEEDA)}.btn-gold:hover{opacity:.85}
+.stat-row{display:flex;justify-content:center;align-items:flex-start;margin-bottom:3px}
+.stat-name{font-size:12px;color:var(--text-secondary)}.stat-val{font-size:12px;font-weight:500}
+.bar-track{height:5px;background:var(--surface-1);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.badge{display:inline-flex;align-items:flex-start;font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px}
+.bs{background:#FAECE7;color:#993C1D}.bw{background:#E6F1FB;color:#185FA5}.bg2{background:#EAF3DE;color:#3B6D11}.bc{background:#FAEEDA;color:#854F0B}.bd{background:#EDE7F6;color:#5B3A9E}
+.era-tag{font-size:11px;color:var(--text-muted);background:var(--surface-1);border:0.5px solid var(--border);border-radius:20px;padding:2px 8px}
+.fighter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:1rem}
+.fc{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:10px;cursor:pointer;transition:border-color .12s,background .12s}
+.fc:hover{border-color:var(--border-strong);background:var(--surface-1)}.fc.sel{border:2px solid #378ADD}
+.fc .fname{font-size:13px;font-weight:500;margin:0 auto;color:var(--text-muted);font-style:italic;margin-bottom:6px;min-height:14px}
+.tier-tag{font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;margin-left:4px;vertical-align:middle}
+.tier-goat{background:#FFF1D6;color:#7A4200}.tier-elite{background:#E6F1FB;color:#185FA5}.tier-good{background:#EAF3DE;color:#3B6D11}.tier-avg{background:var(--surface-1);color:var(--text-muted)}
+.dots{display:flex;gap:6px;margin-bottom:1rem}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border-strong)}.dot.done{background:var(--text-primary)}.dot.active{background:#378ADD}
+.phase-hdr{display:flex;align-items:flex-start;gap:10px;margin-bottom:1rem}
+.phase-num{width:28px;height:28px;border-radius:50%;background:var(--text-primary);color:var(--surface-2);font-size:13px;font-weight:500;display:flex;align-items:flex-start;justify-content:center;flex-shrink:0}
+.divider{border:none;border-top:0.5px solid var(--border);margin:0 auto;gap:8px;flex-wrap:wrap;margin-top:1rem}
+.cslot{background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:12px}.cslot.filled{background:var(--surface-2)}
+.slot-lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.four-col{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.weight-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:1rem}
+.weight-card{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:border-color .12s}
+.weight-card:hover{border-color:var(--border-strong)}.weight-card.sel{border:2px solid #378ADD}
+.weight-card .wname{font-size:14px;font-weight:500}.weight-card .wlimit{font-size:11px;color:var(--text-muted);margin-top:2px}
+.weight-card .wdesc{font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.5}
+.fight-log{background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;max-height:280px;overflow-y:auto}
+.fight-log p{font-size:13px;line-height:1.8;color:var(--text-secondary)}
+.fight-log p.hi{color:var(--text-primary);font-weight:500}.fight-log p.win{color:#3B6D11}.fight-log p.lose{color:#993C1D}.fight-log p.tip{color:#378ADD;font-style:italic}.fight-log p.danger{color:#A32D2D;font-weight:500}
+.rnd-hdr{font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin:0 auto;border-top:0.5px solid var(--border);padding-top:8px}
+.scorecard{background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:0 auto;grid-template-columns:1fr 60px 60px;background:var(--surface-2);border-bottom:0.5px solid var(--border)}
+.sc-hdr div{font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 10px}
+.sc-hdr div:nth-child(2),.sc-hdr div:nth-child(3){text-align:center}
+.sc-row{display:grid;grid-template-columns:1fr 60px 60px;border-bottom:0.5px solid var(--border)}
+.sc-row:last-child{border-bottom:none}
+.sc-row div{font-size:13px;padding:6px 10px}
+.sc-row div:nth-child(2),.sc-row div:nth-child(3){text-align:center;font-weight:500}
+.sc-row.win-row div:nth-child(2){color:#3B6D11}.sc-row.lose-row div:nth-child(3){color:#993C1D}
+.sc-total{display:grid;grid-template-columns:1fr 60px 60px;background:var(--surface-2);border-top:0.5px solid var(--border)}
+.sc-total div{font-size:14px;font-weight:500;padding:8px 10px}
+.sc-total div:nth-child(2),.sc-total div:nth-child(3){text-align:center}
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:flex-start;text-align:center;margin:0 auto;font-weight:500}.sc-pts{font-size:26px;font-weight:500;line-height:1}.sc-pts-lbl{font-size:11px;color:var(--text-muted);margin-top:1px}.sc-vs{font-size:14px;color:var(--text-muted)}
+.overall-big{text-align:center;padding:1.5rem 0}
+.overall-num{font-size:52px;font-weight:500;line-height:1}.overall-lbl{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.record-display{font-size:20px;font-weight:500}
+.belt{font-size:28px;font-weight:500;background:linear-gradient(135deg,#BA7517,#F0C040,#BA7517);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.metric-card{background:var(--surface-1);border-radius:var(--radius);padding:.75rem 1rem}
+.mc-lbl{font-size:12px;color:var(--text-muted);margin-bottom:2px}.mc-val{font-size:22px;font-weight:500}
+.scout-box{background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;margin:0 auto;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.weakness-tag{display:inline-flex;align-items:flex-start;gap:4px;font-size:11px;padding:2px 7px;border-radius:20px;background:#FAECE7;color:#993C1D}
+.weakness-tag.mine{background:#FCEBEB;color:#A32D2D}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text-primary);color:var(--surface-2);padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99}
+.toast.show{opacity:1}
+.org-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:1rem}
+.org-logo{width:40px;height:40px;border-radius:50%;display:flex;align-items:flex-start;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.org-logo.afc{background:linear-gradient(135deg,#1a1a1a,#3a3a3a)}.org-logo.ufc{background:linear-gradient(135deg,#8B0000,#C41E3A)}
+.rank-row{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--surface-2);margin-bottom:5px}
+.rank-row.you{border-color:#378ADD;background:#378ADD0F}
+.rank-num{font-size:13px;font-weight:500;min-width:26px;color:var(--text-muted)}.rank-num.champ{color:#BA7517}
+.rank-name{font-size:13px;font-weight:500;flex:1}.rank-rec{font-size:12px;color:var(--text-secondary)}
+.rank-move{font-size:11px;font-weight:500;min-width:16px;text-align:center}.rank-move.up{color:#3B6D11}.rank-move.down{color:#993C1D}
+.card-poster{background:linear-gradient(135deg,var(--surface-2),var(--surface-1));border:0.5px solid var(--border);border-radius:12px;padding:1.25rem;text-align:center;margin-bottom:1rem}
+.card-event-name{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.card-main-event{font-size:16px;font-weight:500;margin-bottom:2px}.card-vs{font-size:12px;color:var(--text-muted)}
+.fight-card-list{margin:0 auto;align-items:flex-start;justify-content:center;padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:13px}
+.fc-bout:last-child{border-bottom:none}.fc-bout.you{background:#378ADD0F;border-radius:6px}
+.fc-result{font-size:11px;color:var(--text-muted)}
+.section-lbl{font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin:0 auto;font-size:11px;padding:2px 8px;border-radius:20px;margin-left:6px}
+.diff-easy{background:#EAF3DE;color:#3B6D11}.diff-even{background:#FAEEDA;color:#854F0B}.diff-hard{background:#FAECE7;color:#993C1D}
+.promo-banner{background:linear-gradient(135deg,#1a1a1a,#8B0000);color:#fff;border-radius:12px;padding:1.25rem;text-align:center;margin-bottom:1rem}
+.promo-banner h3{color:#fff;font-size:18px}.promo-banner p{color:rgba(255,255,255,0.85);font-size:13px;margin-top:6px}
+.hp-bars{display:flex;gap:10px;margin-bottom:6px}
+.hp-bar-wrap{flex:1}
+.hp-label{font-size:11px;color:var(--text-muted);margin-bottom:2px}
+.hp-track{height:6px;background:var(--surface-1);border-radius:4px;overflow:hidden}
+.hp-fill{height:100%;border-radius:4px;transition:width .4s ease}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HOME -->
+<div id="s-home" class="screen active">
+  <h1>Ultimate Fighter</h1>
+  <p class="subtitle" style="margin-bottom:1.5rem">Draft legends. Pick your division. Build your composite GOAT. Climb from the AFC to the UFC.</p>
+  <div class="two-col" style="margin-bottom:1rem">
+    <div class="card"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Quick Play</div><p style="font-size:13px;color:var(--text-secondary);line-height:1.6">One draft, one exhibition fight.</p><div class="btn-row"><button class="btn" onclick="startDraft('quick')" style="margin-top:4px">Quick draft</button></div></div>
+    <div class="card" style="border-color:#378ADD"><div style="font-size:11px;color:#185FA5;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Career Mode</div><p style="font-size:13px;color:var(--text-secondary);line-height:1.6">Sign with the AFC. Climb the rankings. Win the belt and get called up to the UFC.</p><div class="btn-row"><button class="btn btn-primary" onclick="startDraft('career')" style="margin-top:4px">Start career ↗</button></div></div>
+  </div>
+  <div class="card"><h3 style="margin-bottom:8px">The system</h3><p style="font-size:13px;color:var(--text-secondary);line-height:1.7">Pick your weight class. Draft one specialist per category from a random UFC era pool. Ratings use a real talent curve — only all-time greats score in the 90s. High striking or grappling ratings mean more finishes. Scored on the <strong>10-point must system</strong>. Five categories: <span class="badge bd">Division</span> <span class="badge bs">Striking</span> <span class="badge bw" style="margin:0 auto;color:var(--text-secondary);margin-bottom:1rem" id="ph-desc"></p>
+  <div class="fighter-grid" id="draft-pool"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="confirm-btn" onclick="confirmPick()" style="display:none">Lock in pick ↗</button>
+    <button class="btn" onclick="rerollPool()" id="reroll-btn">Reroll pool <span id="reroll-count" style="color:var(--text-muted)">(2 left)</span></button>
+  </div>
+</div>
+
+<!-- ROSTER -->
+<div id="s-roster" class="screen">
+  <h2>Your Fighter</h2>
+  <p class="subtitle" id="roster-subtitle" style="margin-bottom:1rem"></p>
+  <div class="two-col" id="roster-slots"></div>
+  <hr class="divider">
+  <div class="four-col" id="roster-metrics"></div>
+  <div style="display:flex;justify-content:center;margin:0 auto;justify-content:center;align-items:flex-start;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Record</div><div class="record-display" id="org-record">0–0–0</div></div>
+      <div style="text-align:right"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Rank</div><div class="record-display" id="org-rank">Unranked</div></div>
+    </div>
+  </div>
+  <div class="section-lbl">Division rankings</div>
+  <div id="rankings-list"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="next-card-btn" onclick="bookNextCard()">Get booked for next card ↗</button>
+    <button class="btn" onclick="redraftFighter()">Redraft one slot</button>
+  </div>
+</div>
+
+<!-- CARD PREVIEW -->
+<div id="s-cardpreview" class="screen">
+  <div class="card-poster">
+    <div class="card-event-name" id="cp-event-name"></div>
+    <div class="card-main-event" id="cp-main-event"></div>
+    <div class="card-vs" id="cp-main-vs"></div>
+  </div>
+  <div id="scout-panel-preview"></div>
+  <div class="section-lbl">Full card</div>
+  <div class="fight-card-list" id="cp-card-list"></div>
+  <div class="btn-row"><button class="btn btn-primary" onclick="startMyFight()">Walk to the cage ↗</button></div>
+</div>
+
+<!-- FIGHT -->
+<div id="s-fight" class="screen">
+  <h2 id="fight-title">Fight Night</h2>
+  <div id="scout-panel"></div>
+  <div class="hp-bars" id="hp-bars">
+    <div class="hp-bar-wrap"><div class="hp-label" id="hp-my-label">You — 100%</div><div class="hp-track"><div class="hp-fill" id="hp-my-fill" style="width:100%;background:#378ADD"></div></div></div>
+    <div class="hp-bar-wrap" style="text-align:right"><div class="hp-label" id="hp-opp-label">Opp — 100%</div><div class="hp-track"><div class="hp-fill" id="hp-opp-fill" style="width:100%;background:#D85A30"></div></div></div>
+  </div>
+  <div class="scoreboard">
+    <div><div class="sc-name" id="f-my-name">Your Fighter</div><div class="sc-pts" id="f-my-pts">0</div><div class="sc-pts-lbl">pts</div></div>
+    <div class="sc-vs">vs</div>
+    <div><div class="sc-name" id="f-opp-name">Opponent</div><div class="sc-pts" id="f-opp-pts">0</div><div class="sc-pts-lbl">pts</div></div>
+  </div>
+  <div class="fight-log" id="fight-log"></div>
+  <div class="btn-row" id="fight-btn-row"></div>
+</div>
+
+<!-- RESULT -->
+<div id="s-result" class="screen">
+  <div id="result-content"></div>
+  <div class="btn-row" style="margin-top:1.5rem" id="result-btns"></div>
+</div>
+
+<!-- REDRAFT -->
+<div id="s-redraft" class="screen">
+  <h2>Redraft a Slot</h2>
+  <p class="subtitle" style="margin-bottom:1rem">Pick one category to swap out before your next card. One per fight.</p>
+  <div class="two-col" id="redraft-slots"></div>
+  <div class="btn-row" style="margin-top:1rem" id="redraft-btns"></div>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+<script>
+
+// ════════════════════════════════════════════════════════════════════════════
+// WEIGHT CLASSES
+// ════════════════════════════════════════════════════════════════════════════
+const WEIGHT_CLASSES=[
+{key:"flyweight",name:"Flyweight",limit:"125 lbs",speedMod:1.18,powerMod:0.72,cardioMod:1.12,desc:"Blistering pace, lightning reflexes. Lower KO power — finishes come from volume."},
+{key:"bantamweight",name:"Bantamweight",limit:"135 lbs",speedMod:1.10,powerMod:0.82,cardioMod:1.07,desc:"Fast and technical. Craft beats power here."},
+{key:"featherweight",name:"Featherweight",limit:"145 lbs",speedMod:1.06,powerMod:0.91,cardioMod:1.04,desc:"Speed meets real pop. A balanced class top to bottom."},
+{key:"lightweight",name:"Lightweight",limit:"155 lbs",speedMod:1.02,powerMod:1.0,cardioMod:1.01,desc:"The deepest division. No edge anywhere — everything matters."},
+{key:"welterweight",name:"Welterweight",limit:"170 lbs",speedMod:1.0,powerMod:1.08,cardioMod:0.99,desc:"Where speed meets serious power. Championship rounds are dangerous."},
+{key:"middleweight",name:"Middleweight",limit:"185 lbs",speedMod:0.95,powerMod:1.15,cardioMod:0.96,desc:"Heavy hands, real KO power. One mistake ends the fight."},
+{key:"lightheavyweight",name:"Light Heavyweight",limit:"205 lbs",speedMod:0.90,powerMod:1.22,cardioMod:0.92,desc:"Athletic monsters with elite power. Finishes happen early and often."},
+{key:"heavyweight",name:"Heavyweight",limit:"265 lbs",speedMod:0.80,powerMod:1.38,cardioMod:0.82,desc:"One punch. Finishes are routine. Cardio is a liability from round 2."}
+];
+
+// ════════════════════════════════════════════════════════════════════════════
+// ERAS / FIGHTER DATABASE
+// ════════════════════════════════════════════════════════════════════════════
+const ERAS={earlyLegends:"Early Legends (1993–2005)",goldenAge:"Golden Age (2006–2015)",modernEra:"Modern Era (2016–present)"};
+const ERA_KEYS=["earlyLegends","goldenAge","modernEra"];
+
+const DB={
+striking:{
+earlyLegends:[
+{n:"Chuck Liddell",k:"The Iceman",s:{spm:4.2,acc:44,kd:14,def:64,kop:96}},
+{n:"Mirko Cro Cop",k:"Croatian Sensation",s:{spm:4.8,acc:48,kd:11,def:61,kop:98}},
+{n:"Wanderlei Silva",k:"The Axe Murderer",s:{spm:5.4,acc:42,kd:18,def:55,kop:95}},
+{n:"Vitor Belfort",k:"The Phenom",s:{spm:4.6,acc:46,kd:9,def:58,kop:93}},
+{n:"BJ Penn",k:"The Prodigy",s:{spm:3.9,acc:53,kd:6,def:60,kop:72}},
+{n:"Bas Rutten",k:"El Guapo",s:{spm:4.4,acc:51,kd:12,def:59,kop:94}},
+{n:"Pedro Rizzo",k:"The Rock",s:{spm:4.1,acc:49,kd:8,def:57,kop:91}},
+{n:"Quinton Jackson",k:"Rampage",s:{spm:4.0,acc:45,kd:10,def:60,kop:92}},
+{n:"Alistair Overeem",k:"The Demolition Man",s:{spm:4.5,acc:47,kd:9,def:58,kop:90}},
+{n:"Dan Henderson",k:"Hendo",s:{spm:3.6,acc:42,kd:15,def:63,kop:97}},
+{n:"Maurice Smith",k:"",s:{spm:3.4,acc:46,kd:6,def:62,kop:78}},
+{n:"Pat Miletich",k:"The Croatian Sensation",s:{spm:3.1,acc:50,kd:5,def:68,kop:65}},
+],
+goldenAge:[
+{n:"Anderson Silva",k:"The Spider",s:{spm:3.8,acc:61,kd:11,def:67,kop:88}},
+{n:"Jose Aldo",k:"Junior",s:{spm:3.6,acc:45,kd:3,def:63,kop:68}},
+{n:"Jon Jones",k:"Bones",s:{spm:4.2,acc:55,kd:7,def:67,kop:75}},
+{n:"Georges St-Pierre",k:"GSP",s:{spm:3.5,acc:48,kd:5,def:67,kop:58}},
+{n:"Carlos Condit",k:"Natural Born Killer",s:{spm:4.4,acc:44,kd:6,def:60,kop:78}},
+{n:"Lyoto Machida",k:"The Dragon",s:{spm:3.1,acc:55,kd:9,def:72,kop:80}},
+{n:"Junior dos Santos",k:"Cigano",s:{spm:4.3,acc:52,kd:9,def:62,kop:89}},
+{n:"Edson Barboza",k:"Junior",s:{spm:5.2,acc:43,kd:7,def:57,kop:82}},
+{n:"Anthony Pettis",k:"Showtime",s:{spm:4.0,acc:46,kd:6,def:58,kop:76}},
+{n:"Stephen Thompson",k:"Wonderboy",s:{spm:3.7,acc:52,kd:6,def:69,kop:70}},
+{n:"Robert Whittaker",k:"The Reaper",s:{spm:5.0,acc:48,kd:5,def:61,kop:74}},
+{n:"Donald Cerrone",k:"Cowboy",s:{spm:4.5,acc:44,kd:5,def:55,kop:71}},
+],
+modernEra:[
+{n:"Israel Adesanya",k:"The Last Stylebender",s:{spm:4.5,acc:54,kd:8,def:65,kop:82}},
+{n:"Conor McGregor",k:"The Notorious",s:{spm:5.7,acc:49,kd:11,def:57,kop:97}},
+{n:"Francis Ngannou",k:"The Predator",s:{spm:4.1,acc:45,kd:18,def:63,kop:99}},
+{n:"Max Holloway",k:"Blessed",s:{spm:7.5,acc:48,kd:5,def:56,kop:62}},
+{n:"Alex Pereira",k:"Poatan",s:{spm:4.7,acc:51,kd:14,def:60,kop:98}},
+{n:"Ilia Topuria",k:"El Matador",s:{spm:5.1,acc:53,kd:13,def:61,kop:96}},
+{n:"Sean O'Malley",k:"Sugar",s:{spm:5.4,acc:58,kd:9,def:62,kop:85}},
+{n:"Petr Yan",k:"No Mercy",s:{spm:6.1,acc:49,kd:7,def:59,kop:79}},
+{n:"Justin Gaethje",k:"The Highlight",s:{spm:6.4,acc:44,kd:8,def:50,kop:86}},
+{n:"Dustin Poirier",k:"The Diamond",s:{spm:5.1,acc:46,kd:6,def:56,kop:78}},
+{n:"Alexander Volkanovski",k:"The Great",s:{spm:5.8,acc:57,kd:4,def:64,kop:68}},
+{n:"Yair Rodriguez",k:"El Pantera",s:{spm:4.8,acc:46,kd:7,def:59,kop:80}},
+]},
+wrestling:{
+earlyLegends:[
+{n:"Randy Couture",k:"The Natural",s:{tdpf:2.9,tdacc:44,ctrl:2.8,tddef:72,cc:88}},
+{n:"Matt Hughes",k:"",s:{tdpf:3.6,tdacc:51,ctrl:3.4,tddef:68,cc:90}},
+{n:"Tito Ortiz",k:"Huntington Beach Bad Boy",s:{tdpf:2.8,tdacc:42,ctrl:4.1,tddef:71,cc:82}},
+{n:"Cain Velasquez",k:"",s:{tdpf:3.2,tdacc:53,ctrl:5.8,tddef:80,cc:91}},
+{n:"Mark Coleman",k:"The Hammer",s:{tdpf:3.8,tdacc:55,ctrl:4.6,tddef:65,cc:84}},
+{n:"Kevin Randleman",k:"The Monster",s:{tdpf:3.4,tdacc:49,ctrl:3.9,tddef:70,cc:80}},
+{n:"Josh Barnett",k:"The Warmaster",s:{tdpf:2.6,tdacc:46,ctrl:3.2,tddef:73,cc:78}},
+{n:"Chael Sonnen",k:"The American Gangster",s:{tdpf:5.8,tdacc:44,ctrl:6.2,tddef:66,cc:86}},
+{n:"Tim Sylvia",k:"The Maine-iac",s:{tdpf:1.9,tdacc:38,ctrl:2.1,tddef:76,cc:74}},
+{n:"Mark Kerr",k:"The Smashing Machine",s:{tdpf:4.1,tdacc:58,ctrl:4.8,tddef:62,cc:80}},
+],
+goldenAge:[
+{n:"Georges St-Pierre",k:"GSP",s:{tdpf:3.9,tdacc:58,ctrl:4.6,tddef:84,cc:94}},
+{n:"Jon Jones",k:"Bones",s:{tdpf:2.2,tdacc:49,ctrl:3.9,tddef:92,cc:87}},
+{n:"Daniel Cormier",k:"DC",s:{tdpf:2.6,tdacc:50,ctrl:4.1,tddef:86,cc:91}},
+{n:"Demian Maia",k:"",s:{tdpf:3.1,tdacc:55,ctrl:6.2,tddef:73,cc:90}},
+{n:"Chris Weidman",k:"The All-American",s:{tdpf:2.8,tdacc:47,ctrl:3.2,tddef:80,cc:82}},
+{n:"Johny Hendricks",k:"Bigg Rigg",s:{tdpf:3.5,tdacc:53,ctrl:3.8,tddef:74,cc:83}},
+{n:"Tyron Woodley",k:"The Chosen One",s:{tdpf:2.1,tdacc:44,ctrl:3.1,tddef:85,cc:82}},
+{n:"Jon Fitch",k:"",s:{tdpf:4.8,tdacc:47,ctrl:6.8,tddef:76,cc:85}},
+{n:"Gray Maynard",k:"The Bully",s:{tdpf:3.3,tdacc:50,ctrl:3.5,tddef:77,cc:83}},
+{n:"Jake Shields",k:"",s:{tdpf:2.9,tdacc:46,ctrl:5.1,tddef:72,cc:82}},
+],
+modernEra:[
+{n:"Khabib Nurmagomedov",k:"The Eagle",s:{tdpf:4.9,tdacc:48,ctrl:8.2,tddef:89,cc:99}},
+{n:"Islam Makhachev",k:"",s:{tdpf:3.8,tdacc:69,ctrl:6.4,tddef:85,cc:96}},
+{n:"Colby Covington",k:"Chaos",s:{tdpf:5.5,tdacc:45,ctrl:7.1,tddef:82,cc:92}},
+{n:"Kamaru Usman",k:"The Nigerian Nightmare",s:{tdpf:2.7,tdacc:44,ctrl:5.9,tddef:87,cc:88}},
+{n:"Bo Nickal",k:"",s:{tdpf:4.1,tdacc:61,ctrl:4.8,tddef:80,cc:85}},
+{n:"Merab Dvalishvili",k:"The Machine",s:{tdpf:6.2,tdacc:46,ctrl:7.4,tddef:78,cc:90}},
+{n:"Ben Askren",k:"Funky",s:{tdpf:3.3,tdacc:52,ctrl:6.1,tddef:75,cc:84}},
+{n:"Henry Cejudo",k:"Triple C",s:{tdpf:3.4,tdacc:58,ctrl:4.9,tddef:83,cc:87}},
+{n:"Belal Muhammad",k:"Remember the Name",s:{tdpf:3.6,tdacc:51,ctrl:5.4,tddef:80,cc:86}},
+{n:"Sean O'Malley",k:"Sugar",s:{tdpf:0.8,tdacc:30,ctrl:1.1,tddef:58,cc:55}},
+]},
+grappling:{
+earlyLegends:[
+{n:"Royce Gracie",k:"",s:{sa:3.4,sr:58,gc:82,rr:71,sf:11}},
+{n:"Frank Mir",k:"",s:{sa:2.8,sr:38,gc:75,rr:52,sf:11}},
+{n:"Antonio Nogueira",k:"Minotauro",s:{sa:3.1,sr:44,gc:80,rr:65,sf:12}},
+{n:"Fabricio Werdum",k:"Vai Cavalo",s:{sa:2.6,sr:41,gc:77,rr:62,sf:9}},
+{n:"Nate Diaz",k:"",s:{sa:1.9,sr:35,gc:65,rr:48,sf:9}},
+{n:"Kazushi Sakuraba",k:"The Gracie Hunter",s:{sa:3.8,sr:52,gc:79,rr:69,sf:14}},
+{n:"Renzo Gracie",k:"",s:{sa:3.2,sr:48,gc:76,rr:66,sf:9}},
+{n:"Aleksei Oleinik",k:"The Boa Constrictor",s:{sa:3.6,sr:45,gc:74,rr:60,sf:14}},
+{n:"Ricco Rodriguez",k:"",s:{sa:2.7,sr:40,gc:72,rr:57,sf:8}},
+{n:"Matt Serra",k:"The Terror",s:{sa:2.4,sr:42,gc:70,rr:58,sf:7}},
+],
+goldenAge:[
+{n:"Demian Maia",k:"",s:{sa:3.6,sr:49,gc:88,rr:72,sf:14}},
+{n:"Ronaldo Souza",k:"Jacaré",s:{sa:3.2,sr:47,gc:84,rr:68,sf:13}},
+{n:"BJ Penn",k:"The Prodigy",s:{sa:2.2,sr:38,gc:76,rr:60,sf:8}},
+{n:"Shinya Aoki",k:"Tobikan Judan",s:{sa:4.8,sr:55,gc:83,rr:74,sf:21}},
+{n:"Kenny Florian",k:"KenFlo",s:{sa:2.5,sr:40,gc:72,rr:58,sf:7}},
+{n:"Jim Miller",k:"A-Train",s:{sa:2.9,sr:41,gc:73,rr:57,sf:14}},
+{n:"Glover Teixeira",k:"",s:{sa:2.4,sr:38,gc:74,rr:59,sf:7}},
+{n:"Joe Lauzon",k:"J-Lau",s:{sa:3.0,sr:42,gc:70,rr:55,sf:7}},
+{n:"Gunnar Nelson",k:"Gunni",s:{sa:2.8,sr:46,gc:78,rr:63,sf:8}},
+{n:"Gleison Tibau",k:"",s:{sa:2.1,sr:33,gc:68,rr:52,sf:5}},
+],
+modernEra:[
+{n:"Charles Oliveira",k:"Do Bronx",s:{sa:4.2,sr:52,gc:79,rr:68,sf:21}},
+{n:"Islam Makhachev",k:"",s:{sa:2.9,sr:48,gc:88,rr:74,sf:8}},
+{n:"Tony Ferguson",k:"El Cucuy",s:{sa:3.6,sr:42,gc:76,rr:63,sf:12}},
+{n:"Ryan Hall",k:"",s:{sa:3.5,sr:45,gc:80,rr:72,sf:7}},
+{n:"Garry Tonon",k:"",s:{sa:3.8,sr:47,gc:82,rr:70,sf:6}},
+{n:"Beneil Dariush",k:"",s:{sa:2.4,sr:39,gc:75,rr:61,sf:9}},
+{n:"Vicente Luque",k:"The Silent Assassin",s:{sa:2.2,sr:37,gc:70,rr:55,sf:7}},
+{n:"Brendan Allen",k:"All Business",s:{sa:3.1,sr:44,gc:77,rr:62,sf:7}},
+{n:"Gerald Meerschaert",k:"GM3",s:{sa:3.3,sr:46,gc:73,rr:59,sf:11}},
+{n:"Rafael Fiziev",k:"Ataman",s:{sa:1.2,sr:28,gc:60,rr:44,sf:2}},
+]},
+cardio:{
+earlyLegends:[
+{n:"Georges St-Pierre",k:"GSP",s:{aft:22.4,lro:88,rec:85,abs:2.8,dur:91}},
+{n:"Randy Couture",k:"The Natural",s:{aft:19.8,lro:84,rec:82,abs:2.5,dur:88}},
+{n:"Forrest Griffin",k:"",s:{aft:18.2,lro:81,rec:79,abs:3.8,dur:82}},
+{n:"Clay Guida",k:"The Carpenter",s:{aft:17.9,lro:86,rec:80,abs:3.2,dur:80}},
+{n:"Diego Sanchez",k:"The Nightmare",s:{aft:16.1,lro:82,rec:76,abs:4.1,dur:78}},
+{n:"Nate Diaz",k:"",s:{aft:21.5,lro:85,rec:81,abs:4.2,dur:80}},
+{n:"Nick Diaz",k:"",s:{aft:22.8,lro:87,rec:83,abs:4.1,dur:82}},
+{n:"Gray Maynard",k:"The Bully",s:{aft:17.2,lro:79,rec:77,abs:3.0,dur:85}},
+{n:"Jeremy Horn",k:"",s:{aft:18.5,lro:78,rec:76,abs:3.3,dur:79}},
+{n:"Evan Tanner",k:"",s:{aft:16.4,lro:77,rec:74,abs:4.0,dur:74}},
+],
+goldenAge:[
+{n:"Frankie Edgar",k:"The Answer",s:{aft:22.8,lro:90,rec:88,abs:3.6,dur:90}},
+{n:"Demetrious Johnson",k:"Mighty Mouse",s:{aft:20.4,lro:89,rec:91,abs:2.2,dur:94}},
+{n:"Jose Aldo",k:"Junior",s:{aft:18.7,lro:84,rec:85,abs:2.9,dur:88}},
+{n:"Jon Jones",k:"Bones",s:{aft:22.1,lro:88,rec:87,abs:2.4,dur:92}},
+{n:"Carlos Condit",k:"Natural Born Killer",s:{aft:15.1,lro:80,rec:79,abs:3.7,dur:81}},
+{n:"Nick Diaz",k:"",s:{aft:23.9,lro:91,rec:87,abs:4.5,dur:83}},
+{n:"Robbie Lawler",k:"Ruthless",s:{aft:17.4,lro:83,rec:80,abs:4.8,dur:79}},
+{n:"BJ Penn",k:"The Prodigy",s:{aft:18.0,lro:78,rec:77,abs:3.4,dur:80}},
+{n:"Donald Cerrone",k:"Cowboy",s:{aft:16.3,lro:79,rec:77,abs:3.8,dur:78}},
+{n:"Thiago Alves",k:"Pitbull",s:{aft:14.8,lro:77,rec:76,abs:3.6,dur:76}},
+],
+modernEra:[
+{n:"Max Holloway",k:"Blessed",s:{aft:21.3,lro:95,rec:91,abs:4.8,dur:89}},
+{n:"Colby Covington",k:"Chaos",s:{aft:24.1,lro:93,rec:90,abs:3.4,dur:91}},
+{n:"Tony Ferguson",k:"El Cucuy",s:{aft:19.6,lro:92,rec:88,abs:4.6,dur:82}},
+{n:"Dustin Poirier",k:"The Diamond",s:{aft:15.8,lro:86,rec:83,abs:4.1,dur:84}},
+{n:"Islam Makhachev",k:"",s:{aft:20.2,lro:89,rec:90,abs:2.6,dur:93}},
+{n:"Sean Strickland",k:"Tarzan",s:{aft:23.5,lro:88,rec:85,abs:4.4,dur:85}},
+{n:"Merab Dvalishvili",k:"The Machine",s:{aft:23.8,lro:94,rec:92,abs:3.0,dur:90}},
+{n:"Paddy Pimblett",k:"The Baddy",s:{aft:16.4,lro:84,rec:81,abs:4.5,dur:76}},
+{n:"Kevin Holland",k:"Trailblazer",s:{aft:14.2,lro:82,rec:79,abs:4.8,dur:74}},
+{n:"Beneil Dariush",k:"",s:{aft:19.1,lro:83,rec:82,abs:3.2,dur:83}},
+]}
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// RATING SYSTEM — tuned from test_scoring5.js diagnostic
+// center=0.50, steepness=5.2 sigmoid on weighted normalized raw score
+// Elite outliers (raw 85+) → 85-89, average (raw 55-65) → 55-68, weak → 35-50
+// ════════════════════════════════════════════════════════════════════════════
+const CATS=[
+{key:"striking",label:"Striking",bc:"bs",
+ desc:"Pick the stand-up specialist who defines your striking game.",
+ skeys:["spm","acc","kd","def","kop"],sw:[.25,.20,.15,.20,.20],
+ labels:["Sig strikes/min","Accuracy %","Knockdowns","Strike def %","KO power"],
+ color:"#D85A30",
+ norm:[(v)=>Math.min(100,v/6.5*100),(v)=>Math.min(100,v*1.25),(v)=>Math.min(100,v/14*100),(v)=>Math.min(100,v*1.20),(v)=>Math.min(100,v*1.05)]},
+{key:"wrestling",label:"Wrestling",bc:"bw",
+ desc:"Pick the wrestler whose takedown and control game carries your fight.",
+ skeys:["tdpf","tdacc","ctrl","tddef","cc"],sw:[.25,.20,.15,.20,.20],
+ labels:["TDs/fight","TD acc %","Ctrl time (min)","TD def %","Clinch ctrl"],
+ color:"#378ADD",
+ norm:[(v)=>Math.min(100,v/4.6*100),(v)=>Math.min(100,v*1.15),(v)=>Math.min(100,v/7.2*100),(v)=>Math.min(100,v*1.08),(v)=>Math.min(100,v*1.04)]},
+{key:"grappling",label:"Grappling",bc:"bg2",
+ desc:"Pick the submission hunter who locks in your ground game.",
+ skeys:["sa","sr","gc","rr","sf"],sw:[.20,.25,.20,.15,.20],
+ labels:["Sub att/fight","Sub success %","Ground ctrl","Reversal rate","Career sub wins"],
+ color:"#639922",
+ norm:[(v)=>Math.min(100,v/4.2*100),(v)=>Math.min(100,v*1.35),(v)=>Math.min(100,v*1.10),(v)=>Math.min(100,v*1.10),(v)=>Math.min(100,v/22*100)]},
+{key:"cardio",label:"Cardio / Chin",bc:"bc",
+ desc:"Pick the iron man whose engine and chin carry you through five rounds.",
+ skeys:["aft","lro","rec","abs","dur"],sw:[.15,.25,.25,.15,.20],
+ labels:["Avg fight time","Late round output","Recovery rate","Damage absorbed","Durability"],
+ color:"#BA7517",
+ norm:[(v)=>Math.min(100,v/24*100),(v)=>Math.min(100,v*0.92),(v)=>Math.min(100,v*0.92),(v)=>Math.min(100,(1-v/8)*100),(v)=>Math.min(100,v*0.92)]}
+];
+
+function normStat(v,idx,catKey){
+  const c=CATS.find(x=>x.key===catKey);
+  return Math.min(100,Math.max(0,c.norm[idx](v)));
+}
+
+// Sigmoid S-curve: center=0.50, steepness=5.2
+// Verified: Khabib wrestling=89, DC=76, GSP=84, Ngannou striking=80, Pereira=83, weak fighters land 35-62
+function scoreCurve(raw){
+  const x=raw/100;
+  const sig=1/(1+Math.exp(-5.2*(x-0.50)));
+  return Math.round(Math.min(99,Math.max(35,sig*100)));
+}
+
+function calcScore(stats,catOrKey){
+  const c=typeof catOrKey==="string"?CATS.find(x=>x.key===catOrKey):catOrKey;
+  if(!c)return 50;
+  let raw=0;
+  c.skeys.forEach((k,i)=>{raw+=normStat(stats[k]||0,i,c.key)*c.sw[i];});
+  return scoreCurve(raw);
+}
+
+function getTier(sc){
+  if(sc>=88)return{label:"All-Time Great",cls:"tier-goat"};
+  if(sc>=76)return{label:"Elite",cls:"tier-elite"};
+  if(sc>=62)return{label:"Good",cls:"tier-good"};
+  return{label:"Average",cls:"tier-avg"};
+}
+
+function calcOverall(){
+  if(!picks.length)return 0;
+  return Math.round(picks.reduce((a,p)=>a+calcScore(p.f.s,p.cat),0)/picks.length);
+}
+
+function getPlayerWeakness(){
+  if(picks.length<4)return null;
+  let minIdx=0,minSc=999;
+  picks.forEach((p,i)=>{const sc=calcScore(p.f.s,p.cat);if(sc<minSc){minSc=sc;minIdx=i;}});
+  return{idx:minIdx,key:["str","wre","gra","car"][minIdx],label:CATS[minIdx].label,score:minSc};
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ORGANIZATIONS / DIVISION SIM
+// ════════════════════════════════════════════════════════════════════════════
+const ORGS={
+  afc:{name:"Apex Fighting Championship",abbr:"AFC",logoClass:"afc",tierMult:1.0,ovrMean:62,ovrSpread:14},
+  ufc:{name:"Ultimate Fighting Championship",abbr:"UFC",logoClass:"ufc",tierMult:1.0,ovrMean:72,ovrSpread:13}
+};
+
+const FIRST=["Marcus","Diego","Tomas","Kai","Andre","Bruno","Viktor","Jamal","Lucas","Mateus","Sergio","Felix","Omar","Dmitri","Tyrell","Hiro","Pavel","Rafael","Lukas","Ezra","Caelan","Igor","Nikolai","Joaquin","Theo","Rashid","Cole","Tariq","Stefan","Mason"];
+const LAST=["Reyes","Volkov","Castellano","Brennan","Okafor","Sato","Kowalski","Mbeki","DaSilva","Petrov","Hawkins","Ferreira","Lindqvist","Nakamura","Whitfield","Garibay","Andersson","Kovac","Delgado","Boone","Hassan","Marchetti","Lindgren","Osei","Vance","Hirano","Kuznetsov","Albright","Soares","Mercer"];
+
+function gauss(mean,spread){
+  let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();
+  return mean+Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)*spread;
+}
+
+function generateDivision(orgKey){
+  const org=ORGS[orgKey];
+  const div=[];
+  for(let i=0;i<15;i++){
+    const name=`${FIRST[Math.floor(Math.random()*FIRST.length)]} ${LAST[Math.floor(Math.random()*LAST.length)]}`;
+    let tier;
+    if(i===0)tier=Math.round(gauss(org.ovrMean+22,4));
+    else if(i<3)tier=Math.round(gauss(org.ovrMean+12,5));
+    else if(i<7)tier=Math.round(gauss(org.ovrMean+3,org.ovrSpread*0.7));
+    else tier=Math.round(gauss(org.ovrMean-8,org.ovrSpread));
+    tier=Math.min(99,Math.max(35,tier));
+    const weak=["str","wre","gra","car"][Math.floor(Math.random()*4)];
+    const mkStat=()=>Math.min(99,Math.max(28,Math.round(gauss(tier,15))));
+    div.push({
+      id:`npc_${orgKey}_${i}_${Math.random()}`,name,
+      s:{str:mkStat(),wre:mkStat(),gra:mkStat(),car:mkStat()},
+      wins:Math.max(2,Math.floor(Math.random()*8)+(12-i)),
+      losses:Math.max(0,Math.floor(Math.random()*5)),
+      weakness:weak,
+      weaknessLabel:{str:"Striking",wre:"Wrestling",gra:"Grappling",car:"Cardio"}[weak],
+      rank:i+1,lastMoveDir:0
+    });
+  }
+  div.forEach(f=>{f.s[f.weakness]=Math.max(22,f.s[f.weakness]-22);f.ovr=Math.round((f.s.str+f.s.wre+f.s.gra+f.s.car)/4);});
+  return div.sort((a,b)=>b.ovr-a.ovr).map((f,i)=>{f.rank=i+1;return f;});
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// GAME STATE
+// ════════════════════════════════════════════════════════════════════════════
+let mode="quick",phase=0,pool=[],selIdx=null,picks=[],era="",rerolls=2;
+let division=[],currentOrg="afc",playerRank=null;
+let playerWins=0,playerLosses=0,playerDraws=0,cardsBooked=0,usedRedraft=false,redraftSlot=-1;
+let fightState={},currentCard=null,selectedWeight=null;
+
+function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active")}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2400)}
+function ensureDivision(){if(!division.length)division=generateDivision(currentOrg);}
+
+// ─── WEIGHT ───────────────────────────────────────────────────────────────────
+function startDraft(m){
+  mode=m;phase=0;picks=[];selIdx=null;rerolls=2;selectedWeight=null;
+  if(m==="career"){currentOrg="afc";division=[];playerRank=null;playerWins=0;playerLosses=0;playerDraws=0;usedRedraft=false;cardsBooked=0;}
+  showScreen("s-weight");
+  document.getElementById("weight-grid").innerHTML=WEIGHT_CLASSES.map((w,i)=>
+    `<div class="weight-card" id="wc-${i}" onclick="selectWeight(${i})"><div class="wname">${w.name}</div><div class="wlimit">${w.limit}</div><div class="wdesc">${w.desc}</div></div>`).join("");
+}
+function selectWeight(i){
+  document.querySelectorAll(".weight-card").forEach((el,j)=>el.classList.toggle("sel",j===i));
+  selectedWeight=WEIGHT_CLASSES[i];
+  document.getElementById("weight-confirm").style.display="inline-flex";
+}
+function confirmWeight(){
+  if(!selectedWeight)return;
+  toast(`${selectedWeight.name} selected`);
+  showScreen("s-draft");renderDraft();
+}
+
+// ─── DRAFT ───────────────────────────────────────────────────────────────────
+function renderDraft(){
+  const cat=CATS[phase];
+  const eraKey=ERA_KEYS[Math.floor(Math.random()*3)];
+  era=eraKey;
+  const sh=[...DB[cat.key][eraKey]].sort(()=>Math.random()-.5);
+  pool=sh.slice(0,4);selIdx=null;
+  document.getElementById("ph-num").textContent=phase+1;
+  document.getElementById("ph-title").textContent=cat.label+" Draft";
+  document.getElementById("ph-era").textContent=ERAS[eraKey]+(selectedWeight?` • ${selectedWeight.name}`:"");
+  document.getElementById("ph-desc").textContent=cat.desc;
+  document.getElementById("confirm-btn").style.display="none";
+  document.getElementById("confirm-btn").onclick=confirmPick;
+  document.getElementById("reroll-btn").style.display="inline-flex";
+  document.getElementById("reroll-count").textContent=`(${rerolls} left)`;
+  document.getElementById("draft-dots").innerHTML=CATS.map((c,i)=>`<div class="dot ${i<phase?"done":i===phase?"active":""}"></div>`).join("");
+  renderPool(cat);
+}
+function rerollPool(){
+  if(rerolls<=0){toast("No rerolls left for this pick");return}
+  rerolls--;
+  const cat=CATS[phase];
+  const eraKey=ERA_KEYS[Math.floor(Math.random()*3)];
+  era=eraKey;
+  const sh=[...DB[cat.key][eraKey]].sort(()=>Math.random()-.5);
+  pool=sh.slice(0,4);selIdx=null;
+  document.getElementById("ph-era").textContent=ERAS[eraKey]+(selectedWeight?` • ${selectedWeight.name}`:"");
+  document.getElementById("confirm-btn").style.display="none";
+  document.getElementById("reroll-count").textContent=`(${rerolls} left)`;
+  renderPool(cat);
+}
+function renderPool(cat){
+  document.getElementById("draft-pool").innerHTML=pool.map((f,i)=>{
+    const score=calcScore(f.s,cat);
+    const tier=getTier(score);
+    const bars=cat.skeys.slice(0,4).map((k,j)=>{
+      const nv=normStat(f.s[k]||0,j,cat.key);
+      return`<div class="stat-row"><span class="stat-name">${cat.labels[j]}</span><span class="stat-val">${Math.round(nv)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${nv}%;background:${cat.color}"></div></div>`;
+    }).join("");
+    return`<div class="fc" id="fc-${i}" onclick="selectF(${i})"><span class="badge ${cat.bc}">${cat.label}</span><div class="fname">${f.n}</div><div class="fnick">${f.k?'"'+f.k+'"':""}</div><span class="era-tag">${ERAS[era]}</span><div style="margin-top:8px">${bars}</div><div style="margin-top:6px;font-size:12px;color:var(--text-secondary)">Rating: <strong>${score}</strong><span class="tier-tag ${tier.cls}">${tier.label}</span></div></div>`;
+  }).join("");
+}
+function selectF(i){document.querySelectorAll(".fc").forEach((el,j)=>el.classList.toggle("sel",j===i));selIdx=i;document.getElementById("confirm-btn").style.display="inline-flex";}
+function confirmPick(){
+  if(selIdx===null)return;
+  const cat=CATS[phase];
+  picks.push({f:pool[selIdx],cat,era});
+  toast(`${pool[selIdx].n} locked in as ${cat.label} specialist`);
+  phase++;rerolls=2;
+  if(phase>=CATS.length)setTimeout(()=>showRoster(),300);
+  else renderDraft();
+}
+
+// ─── ROSTER ──────────────────────────────────────────────────────────────────
+function showRoster(){
+  showScreen("s-roster");
+  const ov=calcOverall();
+  document.getElementById("overall-num").textContent=ov;
+  document.getElementById("roster-subtitle").textContent=`${selectedWeight?selectedWeight.name+" — ":""}${mode==="career"?"Ready to sign with the organization.":"Here's your build."}`;
+  document.getElementById("roster-slots").innerHTML=picks.map(p=>{
+    const sc=calcScore(p.f.s,p.cat);const tier=getTier(sc);
+    return`<div class="cslot filled"><div class="slot-lbl">${p.cat.label}</div><span class="badge ${p.cat.bc}" style="margin-bottom:6px">${p.cat.label}</span><div style="font-size:14px;font-weight:500">${p.f.n}</div><div style="font-size:12px;color:var(--text-secondary);margin-top:2px">${ERAS[p.era]||p.era}</div><div style="font-size:13px;margin-top:6px">Rating: <strong>${sc}</strong> <span class="tier-tag ${tier.cls}">${tier.label}</span></div></div>`;
+  }).join("");
+  const clrs=["#D85A30","#378ADD","#639922","#BA7517"];
+  document.getElementById("roster-metrics").innerHTML=picks.map((p,i)=>`<div class="metric-card"><div class="mc-lbl">${p.cat.label}</div><div class="mc-val" style="color:${clrs[i]}">${calcScore(p.f.s,p.cat)}</div></div>`).join("");
+  drawRadar();
+  const w=getPlayerWeakness();
+  document.getElementById("weakness-callout").innerHTML=w?`<div class="scout-box"><div class="scout-title">Self-Scout</div><span class="weakness-tag mine">⚠ Your weakness: ${w.label} (${w.score})</span><p style="font-size:13px;color:var(--text-secondary);margin-top:8px">Opponents will target this. Stay disciplined.</p></div>`:"";
+  document.getElementById("roster-btns").innerHTML=mode==="career"?`<button class="btn btn-primary" onclick="enterOrgHub()">Sign with ${ORGS.afc.abbr} ↗</button>`:`<button class="btn btn-primary" onclick="initFight(null)">Fight exhibition ↗</button><button class="btn" onclick="resetAll()">New draft</button>`;
+}
+function drawRadar(){
+  const canvas=document.getElementById("radar");if(!canvas)return;
+  const ctx=canvas.getContext("2d"),W=240,H=240,cx=120,cy=120,r=85;
+  const labels=["Striking","Wrestling","Grappling","Cardio"];
+  const scores=picks.map(p=>calcScore(p.f.s,p.cat));
+  while(scores.length<4)scores.push(0);
+  const clrs=["#D85A30","#378ADD","#639922","#BA7517"];
+  const isDark=window.matchMedia("(prefers-color-scheme:dark)").matches;
+  const tc=isDark?"rgba(255,255,255,0.65)":"rgba(0,0,0,0.55)",gc=isDark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.07)";
+  ctx.clearRect(0,0,W,H);
+  const n=4,angs=Array.from({length:n},(_,i)=>(i/n)*Math.PI*2-Math.PI/2);
+  for(let ring=1;ring<=5;ring++){ctx.beginPath();angs.forEach((a,i)=>{const rr=r*ring/5,x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.closePath();ctx.strokeStyle=gc;ctx.lineWidth=1;ctx.stroke();}
+  angs.forEach(a=>{ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);ctx.strokeStyle=gc;ctx.lineWidth=1;ctx.stroke()});
+  ctx.beginPath();angs.forEach((a,i)=>{const v=scores[i]/99,x=cx+Math.cos(a)*r*v,y=cy+Math.sin(a)*r*v;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.closePath();ctx.fillStyle="rgba(55,138,221,0.12)";ctx.fill();ctx.strokeStyle="#378ADD";ctx.lineWidth=2;ctx.stroke();
+  angs.forEach((a,i)=>{const v=scores[i]/99,x=cx+Math.cos(a)*r*v,y=cy+Math.sin(a)*r*v;ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle=clrs[i];ctx.fill()});
+  angs.forEach((a,i)=>{const lx=cx+Math.cos(a)*(r+22),ly=cy+Math.sin(a)*(r+22);ctx.fillStyle=tc;ctx.font="11px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(labels[i],lx,ly);ctx.fillStyle=clrs[i];ctx.font="bold 11px system-ui";ctx.fillText(scores[i],lx,ly+13)});
+}
+
+// ─── ORG HUB ─────────────────────────────────────────────────────────────────
+function enterOrgHub(){showScreen("s-org");renderOrgHub();}
+function renderOrgHub(){
+  ensureDivision();
+  const org=ORGS[currentOrg];
+  document.getElementById("org-logo").textContent=org.abbr.slice(0,2);
+  document.getElementById("org-logo").className="org-logo "+org.logoClass;
+  document.getElementById("org-name-lbl").textContent=org.name;
+  document.getElementById("org-division-name").textContent=(selectedWeight?selectedWeight.name:"")+" Division";
+  document.getElementById("org-record").textContent=`${playerWins}–${playerLosses}–${playerDraws}`;
+  document.getElementById("org-rank").textContent=playerRank?`#${playerRank}`:"Unranked";
+  document.getElementById("promo-banner-slot").innerHTML=currentOrg==="ufc"?`<div class="promo-banner"><h3>Welcome to the UFC</h3><p>You earned the call-up. The competition just got significantly tougher.</p></div>`:"";
+  const rows=[...division.map(f=>({...f,isPlayer:false}))];
+  if(playerRank)rows.splice(playerRank-1,0,{id:"player",name:picks.map(p=>p.f.n.split(" ").pop()).join("/")+" (You)",ovr:calcOverall(),wins:playerWins,losses:playerLosses,isPlayer:true,rank:playerRank,lastMoveDir:0});
+  document.getElementById("rankings-list").innerHTML=rows.slice(0,15).map((f,i)=>{
+    const mv=f.lastMoveDir>0?`<span class="rank-move up">▲</span>`:f.lastMoveDir<0?`<span class="rank-move down">▼</span>`:`<span class="rank-move">–</span>`;
+    const rl=i===0?`<span class="rank-num champ">C</span>`:`<span class="rank-num">#${i+1}</span>`;
+    return`<div class="rank-row ${f.isPlayer?"you":""}">${rl}<div class="rank-name">${f.name}</div><div class="rank-rec">${f.wins}-${f.losses}</div>${mv}</div>`;
+  }).join("");
+  const btn=document.getElementById("next-card-btn");
+  btn.textContent=playerRank===1?"Fight for the belt ↗":cardsBooked===0?"Get booked for debut card ↗":"Get booked for next card ↗";
+}
+
+// ─── BOOKING ─────────────────────────────────────────────────────────────────
+const VENUES=["Apex Center, Las Vegas","T-Mobile Arena","Etihad Arena, Abu Dhabi","O2 Arena, London","Madison Square Garden","Intuit Dome","Kaseya Center, Miami"];
+function bookNextCard(){
+  ensureDivision();cardsBooked++;
+  const myOvr=calcOverall();
+  const ps=!playerRank?10:Math.max(0,playerRank-3);
+  const pe=!playerRank?14:Math.min(division.length-1,playerRank+1);
+  const candidates=division.slice(ps,pe+1);
+  const opponent=candidates[Math.floor(Math.random()*candidates.length)]||division[division.length-1];
+  const others=[...division.filter(f=>f.id!==opponent.id)].sort(()=>Math.random()-.5);
+  const undercard=[];
+  for(let i=0;i<4&&i*2+1<others.length;i++)undercard.push({a:others[i*2],b:others[i*2+1]});
+  const org=ORGS[currentOrg];
+  currentCard={eventName:`${org.abbr} ${280+cardsBooked}`,venue:VENUES[Math.floor(Math.random()*VENUES.length)],opponent,undercard,isTitleFight:playerRank===1,myOvr};
+  showCardPreview();
+}
+function showCardPreview(){
+  showScreen("s-cardpreview");
+  const c=currentCard;
+  const myName=picks.map(p=>p.f.n.split(" ").pop()).join("/");
+  document.getElementById("cp-event-name").textContent=`${c.eventName} • ${c.venue}`;
+  document.getElementById("cp-main-event").textContent=c.isTitleFight?`TITLE FIGHT: ${myName} vs ${c.opponent.name}`:`Co-Main: ${myName} vs ${c.opponent.name}`;
+  const diff=c.opponent.ovr-c.myOvr;
+  const dtag=diff>8?`<span class="diff-tag diff-hard">Tough matchup</span>`:diff<-8?`<span class="diff-tag diff-easy">Favorable</span>`:`<span class="diff-tag diff-even">Even fight</span>`;
+  document.getElementById("cp-main-vs").innerHTML=`${c.opponent.ovr} OVR • Rank #${c.opponent.rank} ${dtag}`;
+  const myW=getPlayerWeakness();
+  document.getElementById("scout-panel-preview").innerHTML=`<div class="scout-box"><div class="scout-title">Corner Report</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"><span class="weakness-tag">⚠ Their weakness: ${c.opponent.weaknessLabel}</span>${myW?`<span class="weakness-tag mine">⚠ Your weakness: ${myW.label}</span>`:""}</div><p style="font-size:13px;color:var(--text-secondary)">Exploit his ${c.opponent.weaknessLabel.toLowerCase()}${myW?" — but guard your "+myW.label.toLowerCase()+". He's already got a game plan for it.":"."}</p></div>`;
+  document.getElementById("cp-card-list").innerHTML=c.undercard.map((b,i)=>`<div class="fc-bout"><div>${b.a.name} vs ${b.b.name}</div><div class="fc-result">${["Prelim","Prelim","Undercard","Main Card"][i]}</div></div>`).join("")+`<div class="fc-bout you"><div><strong>${myName} vs ${c.opponent.name}</strong></div><div class="fc-result">${c.isTitleFight?"🏆 TITLE":"YOUR FIGHT"}</div></div>`;
+}
+function startMyFight(){initFight(currentCard.opponent);}
+
+// ─── REDRAFT ─────────────────────────────────────────────────────────────────
+function redraftFighter(){
+  if(usedRedraft){toast("Already used redraft for this card.");return}
+  showScreen("s-redraft");
+  document.getElementById("redraft-slots").innerHTML=picks.map((p,i)=>`<div class="cslot filled" style="cursor:pointer" onclick="pickRedraftSlot(${i})" id="rd-${i}"><div class="slot-lbl">${p.cat.label}</div><span class="badge ${p.cat.bc}" style="margin-bottom:6px">${p.cat.label}</span><div style="font-size:14px;font-weight:500">${p.f.n}</div><div style="font-size:13px;color:var(--text-secondary);margin-top:4px">Rating: <strong>${calcScore(p.f.s,p.cat)}</strong></div></div>`).join("");
+  document.getElementById("redraft-btns").innerHTML=`<button class="btn" onclick="enterOrgHub()">Cancel</button>`;
+}
+function pickRedraftSlot(i){
+  redraftSlot=i;
+  document.querySelectorAll("[id^='rd-']").forEach((el,j)=>{el.style.border=j===i?"2px solid #378ADD":"0.5px solid var(--border)"});
+  document.getElementById("redraft-btns").innerHTML=`<button class="btn btn-primary" onclick="doRedraft()">Redraft this slot ↗</button><button class="btn" onclick="enterOrgHub()">Cancel</button>`;
+}
+function doRedraft(){
+  if(redraftSlot<0)return;
+  usedRedraft=true;phase=redraftSlot;rerolls=2;
+  showScreen("s-draft");
+  const cat=CATS[redraftSlot];
+  const eraKey=ERA_KEYS[Math.floor(Math.random()*3)];
+  era=eraKey;
+  const sh=[...DB[cat.key][eraKey]].sort(()=>Math.random()-.5);
+  pool=sh.slice(0,4);selIdx=null;
+  document.getElementById("ph-num").textContent=redraftSlot+1;
+  document.getElementById("ph-title").textContent="Redraft: "+cat.label;
+  document.getElementById("ph-era").textContent=ERAS[eraKey];
+  document.getElementById("ph-desc").textContent="Choose a new "+cat.label.toLowerCase()+" specialist.";
+  document.getElementById("confirm-btn").style.display="none";
+  document.getElementById("confirm-btn").onclick=()=>{if(selIdx===null)return;picks[redraftSlot]={f:pool[selIdx],cat,era};toast(`${pool[selIdx].n} now your ${cat.label} specialist`);showRoster();};
+  document.getElementById("reroll-count").textContent=`(${rerolls} left)`;
+  document.getElementById("draft-dots").innerHTML=CATS.map((c,i)=>`<div class="dot ${i===redraftSlot?"active":"done"}"></div>`).join("");
+  renderPool(cat);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FIGHT ENGINE
+// Finish rates now directly tied to attacker's skill rating in that category:
+//   KO/TKO finish chance = (myStrikingRating/100)^1.8 * 0.62 * powerMod
+//   Sub finish chance    = (myGrapplingRating/100)^1.8 * 0.58
+// This means an 89-rated striker finishes far more often than a 55-rated one.
+// ════════════════════════════════════════════════════════════════════════════
+const ACTIONS={
+  str:["lands a sharp left-right combination","cracks a head kick that snaps the head back","fires a spinning back fist out of nowhere","drops the overhand right on the button","snaps out a laser straight right and steps back clean"],
+  wre:["shoots a clean double leg and drives to the mat","clinch trips to the mat and gets top position","body-lock takedown straight to the back","drags the fight to the fence and controls with ease","slick single leg into a trip — textbook execution"],
+  gra:["attacks a triangle from guard","hunts the rear-naked choke from the back","arm triangle from half guard — it's tight","transitions to mount and starts working the finish","D'Arce from the scramble — arms are in danger"],
+  car:["relentlessly pushes forward, swarming with strikes","works the jab and never lets the opponent breathe","maintains championship pace into the late rounds","pressures non-stop and steals the round on volume","grinds and edges the round purely on output"]
+};
+const OPP_CHOICES=["str","wre","gra","car"];
+
+function initFight(opp){
+  showScreen("s-fight");
+  const wMod=selectedWeight||{speedMod:1,powerMod:1,cardioMod:1};
+  const oppData=opp||{name:"Exhibition Opponent",s:{str:55+Math.floor(Math.random()*20),wre:52+Math.floor(Math.random()*20),gra:50+Math.floor(Math.random()*20),car:54+Math.floor(Math.random()*20)},weakness:null,weaknessLabel:null};
+  const myScores=picks.map(p=>calcScore(p.f.s,p.cat));
+  const myName=picks.map(p=>p.f.n.split(" ").pop()).join("/");
+  const myWeakness=getPlayerWeakness();
+  const maxRounds=(mode==="career"&&currentCard&&currentCard.isTitleFight)?5:3;
+  fightState={
+    myName,opp:oppData,myScores,myWeakness,
+    myStr:myScores[0]||55,myWre:myScores[1]||55,myGra:myScores[2]||55,myCar:myScores[3]||55,
+    myHP:100,oppHP:100,myPts:0,oppPts:0,
+    myRoundsWon:0,oppRoundsWon:0,roundLog:[],
+    round:1,maxRounds,finished:false,method:null,wMod
+  };
+  document.getElementById("fight-title").textContent=opp?(currentCard?.isTitleFight?`🏆 TITLE FIGHT: vs ${opp.name}`:`vs ${opp.name}`):"Exhibition Fight";
+  document.getElementById("f-my-name").textContent=myName;
+  document.getElementById("f-opp-name").textContent=oppData.name;
+  document.getElementById("f-my-pts").textContent="0";
+  document.getElementById("f-opp-pts").textContent="0";
+  document.getElementById("fight-log").innerHTML="";
+  updateHPBars();
+  const sp=document.getElementById("scout-panel");
+  let sh="";
+  if(oppData.weakness)sh+=`<span class="weakness-tag">⚠ Their weak: ${oppData.weaknessLabel}</span> `;
+  if(myWeakness)sh+=`<span class="weakness-tag mine">⚠ Your weak: ${myWeakness.label}</span>`;
+  sp.innerHTML=sh?`<div class="scout-box"><div class="scout-title">Corner Report</div><div style="display:flex;gap:6px;flex-wrap:wrap">${sh}</div></div>`:"";
+  renderFightBtns();
+}
+
+function updateHPBars(){
+  const fs=fightState;
+  document.getElementById("hp-my-label").textContent=`You — ${fs.myHP}%`;
+  document.getElementById("hp-opp-label").textContent=`Opp — ${fs.oppHP}%`;
+  document.getElementById("hp-my-fill").style.width=`${Math.max(0,fs.myHP)}%`;
+  document.getElementById("hp-opp-fill").style.width=`${Math.max(0,fs.oppHP)}%`;
+}
+
+function renderFightBtns(){
+  const row=document.getElementById("fight-btn-row");
+  const fs=fightState;
+  if(fs.finished||fs.round>fs.maxRounds){row.innerHTML=`<button class="btn btn-primary" onclick="showResult()">See result ↗</button>`;return;}
+  const xk=fs.opp.weakness;
+  const keys=["str","wre","gra","car"];
+  const lbls={str:"Strike",wre:"Shoot takedown",gra:"Grapple / Sub",car:"Pace / Pressure"};
+  row.innerHTML=`<p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;width:100%">Round ${fs.round} of ${fs.maxRounds} — gameplan: <span style="color:#378ADD">(⚡ = exploit their weakness)</span></p>`+keys.map(k=>`<button class="${k===xk?"btn btn-primary":"btn"}" onclick="fightRound('${k}')">${lbls[k]}${k===xk?" ⚡":""}</button>`).join("");
+}
+
+// ── FINISH RATE FORMULA ──────────────────────────────────────────────────────
+// Base finish chance scales with attacker's relevant skill rating using a power curve.
+// An 89-rated striker: (89/100)^1.8 * baseChance ≈ 0.82 * base — very dangerous.
+// A 55-rated striker: (55/100)^1.8 * baseChance ≈ 0.34 * base — finishes are rare.
+// Weight class power modifier multiplies KO/TKO chance further.
+// Opponent's low HP (below 45%) opens the finish window.
+function koFinishChance(attackerStrRating, wPowerMod, oppHP){
+  if(oppHP>55)return 0; // can only finish hurt opponents
+  const skillFactor=Math.pow(attackerStrRating/100,1.8);
+  const hpFactor=oppHP<30?1.8:oppHP<45?1.2:0.7;
+  return skillFactor*0.72*wPowerMod*hpFactor;
+}
+function subFinishChance(attackerGraRating, oppHP){
+  if(oppHP>70)return 0; // harder to finish a fresh opponent on the ground
+  const skillFactor=Math.pow(attackerGraRating/100,1.8);
+  const hpFactor=oppHP<30?1.6:oppHP<50?1.15:0.8;
+  return skillFactor*0.65*hpFactor;
+}
+
+function fightRound(choice){
+  const fs=fightState;
+  const log=document.getElementById("fight-log");
+
+  // AI targets player's weakness 48% of the time
+  const oc=(fs.myWeakness&&Math.random()<0.48)?fs.myWeakness.key:OPP_CHOICES[Math.floor(Math.random()*4)];
+  const myVal={str:fs.myStr,wre:fs.myWre,gra:fs.myGra,car:fs.myCar}[choice];
+  const oppS=fs.opp.s;
+  const oppVal={str:oppS.str,wre:oppS.wre,gra:oppS.gra,car:oppS.car}[oc];
+
+  const isLate=fs.round>=4;
+  const cFac=isLate?0.70+(fs.myCar/100)*0.30:1;
+  const oCFac=isLate?0.70+(oppS.car/100)*0.30:1;
+  const myX=(choice===fs.opp.weakness)?1.30:1;
+  const aiX=(fs.myWeakness&&oc===fs.myWeakness.key)?1.30:1;
+  const pMod=fs.wMod.powerMod;
+  const tiebreak=(Math.random()-0.5)*0.02;
+  const myRoll=myVal*(0.62+Math.random()*0.76)*cFac*myX*(choice==="str"?pMod:1)+tiebreak;
+  const oppRoll=oppVal*(0.62+Math.random()*0.76)*oCFac*aiX*(oc==="str"?pMod:1);
+
+  const rh=document.createElement("p");rh.className="rnd-hdr";rh.textContent=`Round ${fs.round}`;log.appendChild(rh);
+  if(choice===fs.opp.weakness)addLog(log,"⚡ You target his weakness — gameplan in effect.","tip");
+  if(fs.myWeakness&&oc===fs.myWeakness.key)addLog(log,`⚠ ${fs.opp.name} is going straight to your ${fs.myWeakness.label.toLowerCase()} — stay sharp.`,"danger");
+  if(isLate)addLog(log,`Round ${fs.round} — cardio is becoming a factor.`,"tip");
+
+  addLog(log,`Your fighter ${ACTIONS[choice][Math.floor(Math.random()*5)]}.`,"hi");
+  addLog(log,`${fs.opp.name} responds — ${ACTIONS[oc][Math.floor(Math.random()*5)]}.`);
+
+  const fr=Math.random();
+
+  if(myRoll>oppRoll){
+    // Damage — more damage means more likely to open finish window
+    const dmg=Math.max(5,Math.round((myRoll-oppRoll)*0.16));
+    fs.oppHP=Math.max(0,fs.oppHP-dmg);
+
+    // KO/TKO check — driven by your striking rating
+    if(choice==="str"){
+      const fc=koFinishChance(fs.myStr,pMod,fs.oppHP);
+      if(fr<fc){
+        addLog(log,`FINISH — your striker lands flush! ${fs.opp.name} goes down and the ref waves it off!`,"win");
+        fs.myPts+=10;fs.oppPts+=9;fs.myRoundsWon++;
+        fs.roundLog.push({rnd:fs.round,myScore:10,oppScore:9,winner:"me"});
+        fs.finished=true;fs.method="KO/TKO";endFight();updateScoreboard();updateHPBars();return;
+      }
+    }
+    // Submission check — driven by your grappling rating
+    if(choice==="gra"){
+      const fc=subFinishChance(fs.myGra,fs.oppHP);
+      if(fr<fc){
+        addLog(log,`SUBMISSION — the choke is in! ${fs.opp.name} taps out!`,"win");
+        fs.myPts+=10;fs.oppPts+=9;fs.myRoundsWon++;
+        fs.roundLog.push({rnd:fs.round,myScore:10,oppScore:9,winner:"me"});
+        fs.finished=true;fs.method="Submission";endFight();updateScoreboard();updateHPBars();return;
+      }
+    }
+    fs.myPts+=10;fs.oppPts+=9;fs.myRoundsWon++;
+    fs.roundLog.push({rnd:fs.round,myScore:10,oppScore:9,winner:"me"});
+    addLog(log,`10–9 your fighter — takes the round clearly on the cards.`,"win");
+  }else{
+    const dmg=Math.max(5,Math.round((oppRoll-myRoll)*0.16));
+    fs.myHP=Math.max(0,fs.myHP-dmg);
+
+    if(oc==="str"){
+      const fc=koFinishChance(oppS.str,pMod,fs.myHP);
+      if(fr<fc){
+        addLog(log,`FINISH — ${fs.opp.name} lands the perfect shot! Your fighter is down!`,"lose");
+        fs.oppPts+=10;fs.myPts+=9;fs.oppRoundsWon++;
+        fs.roundLog.push({rnd:fs.round,myScore:9,oppScore:10,winner:"opp"});
+        fs.finished=true;fs.method="KO/TKO (loss)";endFight();updateScoreboard();updateHPBars();return;
+      }
+    }
+    if(oc==="gra"){
+      const fc=subFinishChance(oppS.gra,fs.myHP);
+      if(fr<fc){
+        addLog(log,`SUBMISSION — ${fs.opp.name} sinks the submission in deep! Your fighter taps!`,"lose");
+        fs.oppPts+=10;fs.myPts+=9;fs.oppRoundsWon++;
+        fs.roundLog.push({rnd:fs.round,myScore:9,oppScore:10,winner:"opp"});
+        fs.finished=true;fs.method="Submission (loss)";endFight();updateScoreboard();updateHPBars();return;
+      }
+    }
+    fs.oppPts+=10;fs.myPts+=9;fs.oppRoundsWon++;
+    fs.roundLog.push({rnd:fs.round,myScore:9,oppScore:10,winner:"opp"});
+    addLog(log,`10–9 ${fs.opp.name} — your fighter absorbed punishment this round.`,"lose");
+  }
+
+  fs.round++;
+  updateScoreboard();updateHPBars();
+  log.scrollTop=log.scrollHeight;
+  if(fs.round>fs.maxRounds&&!fs.finished){
+    const fin=document.createElement("p");fin.className="rnd-hdr";fin.textContent="Final bell";log.appendChild(fin);
+    const maxPts=fs.maxRounds===5?95:57;
+    addLog(log,`Fight goes to the judges. ${fs.myPts}–${fs.oppPts} out of ${maxPts} possible.`);
+    log.scrollTop=log.scrollHeight;
+  }
+  renderFightBtns();
+}
+
+function updateScoreboard(){document.getElementById("f-my-pts").textContent=fightState.myPts;document.getElementById("f-opp-pts").textContent=fightState.oppPts;}
+function addLog(c,t,cls){const p=document.createElement("p");if(cls)p.className=cls;p.textContent=t;c.appendChild(p);}
+function endFight(){document.getElementById("fight-btn-row").innerHTML=`<button class="btn btn-primary" onclick="showResult()">See result ↗</button>`;}
+
+// ── NPC SIM + RANKINGS ───────────────────────────────────────────────────────
+function simulateNpcBout(a,b){
+  const ap=a.ovr*(0.72+Math.random()*0.56),bp=b.ovr*(0.72+Math.random()*0.56);
+  const winner=ap>bp?a:b,loser=winner===a?b:a;
+  return{winner,loser,method:["Decision","KO/TKO","Submission"][Math.floor(Math.random()*3)]};
+}
+
+function processCard(playerWon){
+  ensureDivision();
+  const npcResults=currentCard.undercard.map(b=>simulateNpcBout(b.a,b.b));
+  npcResults.forEach(r=>{
+    const w=division.find(f=>f.id===r.winner.id),l=division.find(f=>f.id===r.loser.id);
+    if(w){w.wins++;w.ovr=Math.min(99,w.ovr+1);}
+    if(l){l.losses++;l.ovr=Math.max(28,l.ovr-1);}
+  });
+  const opp=division.find(f=>f.id===currentCard.opponent.id);
+  if(opp){if(playerWon){opp.losses++;opp.ovr=Math.max(28,opp.ovr-2);}else{opp.wins++;opp.ovr=Math.min(99,opp.ovr+2);}}
+  let justWonBelt=false;
+  if(playerWon){
+    playerWins++;
+    if(!playerRank)playerRank=Math.max(8,15-Math.floor(calcOverall()/13));
+    else{const wasBelt=currentCard.isTitleFight;playerRank=Math.max(1,playerRank-(1+Math.floor(Math.random()*2)));if(wasBelt&&playerRank===1)justWonBelt=true;}
+  }else{playerLosses++;if(playerRank)playerRank=Math.min(15,playerRank+(1+Math.floor(Math.random()*2)));}
+  const oldOrder={};division.forEach((f,i)=>oldOrder[f.id]=i);
+  division.sort((a,b)=>b.ovr-a.ovr);
+  division.forEach((f,i)=>{f.lastMoveDir=oldOrder[f.id]>i?1:oldOrder[f.id]<i?-1:0;f.rank=i+1;});
+  return{npcResults,justWonBelt};
+}
+
+// ─── RESULT ──────────────────────────────────────────────────────────────────
+function showResult(){
+  showScreen("s-result");
+  const fs=fightState;
+  const won=fs.finished?(fs.method==="KO/TKO"||fs.method==="Submission"):fs.myPts>fs.oppPts;
+  const method=fs.method||(won?"Unanimous decision":"Decision loss");
+  let npcResults=[],justWonBelt=false;
+  if(mode==="career"){const r=processCard(won);npcResults=r.npcResults;justWonBelt=r.justWonBelt;}
+  const maxPts=fs.maxRounds===5?95:57;
+  const scRows=fs.roundLog.map(r=>`<div class="sc-row ${r.winner==="me"?"win-row":"lose-row"}"><div>Round ${r.rnd}</div><div>${r.myScore}</div><div>${r.oppScore}</div></div>`).join("");
+  const totalRow=`<div class="sc-total"><div>Total (of ${maxPts})</div><div style="color:${won?"#3B6D11":"#993C1D"}">${fs.myPts}</div><div style="color:${won?"#993C1D":"#3B6D11"}">${fs.oppPts}</div></div>`;
+  const scorecard=`<div class="scorecard"><div class="sc-hdr"><div>Judge's Scorecard</div><div>${fs.myName.split("/")[0]}</div><div>${fs.opp.name.split(" ").pop()}</div></div>${scRows}${totalRow}</div>`;
+  const cardHtml=mode==="career"&&npcResults.length?`<div class="section-lbl">Rest of the card</div><div class="fight-card-list" style="margin-top:0">${npcResults.map(r=>`<div class="fc-bout"><div>${r.winner.name} def. ${r.loser.name}</div><div class="fc-result">${r.method}</div></div>`).join("")}</div>`:"";
+  const rankHtml=mode==="career"&&!justWonBelt?`<div class="card" style="margin-top:1rem"><div style="display:flex;justify-content:center;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">New rank</div><div class="record-display">${playerRank?"#"+playerRank:"Unranked"}</div></div><div style="text-align:right"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Record</div><div class="record-display">${playerWins}–${playerLosses}–${playerDraws}</div></div></div></div>`:"";
+  document.getElementById("result-content").innerHTML=`
+<div style="text-align:center;padding:1.5rem 0">
+  ${justWonBelt?`<div class="belt" style="display:block;margin-bottom:8px">${ORGS[currentOrg].abbr} CHAMPION</div>`:""}
+  <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px">${won?"Victory":"Defeat"}</div>
+  <div style="font-size:42px;font-weight:500;margin-bottom:4px">${won?"W":"L"}</div>
+  <div style="font-size:14px;color:var(--text-secondary)">${method}</div>
+</div>
+${scorecard}${rankHtml}${cardHtml}
+<div class="card" style="margin-top:1rem">
+  <p style="font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Your composite</p>
+  ${picks.map(p=>{const sc=calcScore(p.f.s,p.cat);const t=getTier(sc);return`<div style="display:flex;justify-content:center;align-items:flex-start;padding:3px 0;font-size:13px"><span class="badge ${p.cat.bc}">${p.cat.label}</span><span style="color:var(--text-secondary)">${p.f.n}</span><strong>${sc} <span class="tier-tag ${t.cls}">${t.label}</span></strong></div>`}).join("")}
+</div>`;
+  const btns=document.getElementById("result-btns");
+  if(mode==="career"){
+    if(justWonBelt&&currentOrg==="afc")btns.innerHTML=`<button class="btn btn-gold" onclick="goToUFC()">Sign with the UFC ↗</button><button class="btn" onclick="enterOrgHub()">Stay in AFC</button>`;
+    else if(justWonBelt&&currentOrg==="ufc")btns.innerHTML=`<button class="btn btn-gold" onclick="resetAll()">UFC Champion — New career ↗</button>`;
+    else btns.innerHTML=`<button class="btn btn-primary" onclick="enterOrgHub()">Back to rankings ↗</button><button class="btn" onclick="resetAll()">New draft</button>`;
+  }else btns.innerHTML=`<button class="btn btn-primary" onclick="initFight(null)">Fight again ↗</button><button class="btn" onclick="resetAll()">New draft</button>`;
+}
+
+function goToUFC(){
+  currentOrg="ufc";division=generateDivision("ufc");
+  playerRank=null;playerWins=0;playerLosses=0;playerDraws=0;cardsBooked=0;usedRedraft=false;
+  enterOrgHub();
+}
+function resetAll(){mode="quick";phase=0;picks=[];selIdx=null;division=[];currentOrg="afc";playerRank=null;playerWins=0;playerLosses=0;playerDraws=0;usedRedraft=false;cardsBooked=0;selectedWeight=null;showScreen("s-home");}
+</script>
+</body>
+</html>
